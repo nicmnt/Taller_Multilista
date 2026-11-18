@@ -74,7 +74,6 @@ class MultiList:
                         "tipo": r[tipo_col].strip(),
                         "codigo": r["Código Municipio"].strip(),
                         "nombre": r["Nombre Municipio"].strip().title(),
-                        # el CSV usa coma decimal: "-75,581775"
                         "lon": float(r["longitud"].replace(",", ".")),
                         "lat": float(r["Latitud"].replace(",", ".")),
                     })
