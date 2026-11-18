@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Multilista DIVIPOLA</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body { height: 100%; margin: 0; font-family: sans-serif; }
+    #wrap { display: flex; height: 100%; }
+    #side { width: 280px; overflow-y: auto; padding: 8px; border-right: 1px solid #ccc; }
+    #map { flex: 1; }
+    #side button { display: block; width: 100%; text-align: left; margin: 2px 0; cursor: pointer; }
+  </style>
+</head>
+<body>
+<div id="wrap">
+  <div id="side"><h3>Departamentos</h3><div id="deps"></div></div>
+  <div id="map"></div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([4.57, -74.3], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors', maxZoom: 18
+}).addTo(map);
+
+const layers = {};  // un grupo de marcadores por departamento
+
+fetch('/api/multilista')
+  .then(r => r.json())
+  .then(pais => {
+    const cont = document.getElementById('deps');
+    pais.hijos.forEach(dep => {
+      const grupo = L.layerGroup();
+      dep.hijos.forEach(m => {
+        L.circleMarker([m.lat, m.lon], {radius: 4})
+          .bindPopup(`<b>${m.nombre}</b><br>${dep.nombre}<br>Código: ${m.codigo}<br>${m.tipo}`)
+          .addTo(grupo);
+      });
+      grupo.addTo(map);
+      layers[dep.codigo] = {grupo, dep};
+
+      const b = document.createElement('button');
+      b.textContent = `${dep.nombre} (${dep.hijos.length})`;
+      b.onclick = () => {
+        const pts = dep.hijos.map(m => [m.lat, m.lon]);
+        map.fitBounds(L.latLngBounds(pts).pad(0.1));
+      };
+      cont.appendChild(b);
+    });
+  });
+</script>
+</body>
+</html>
